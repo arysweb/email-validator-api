@@ -511,11 +511,11 @@
 
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem;">
       <span style="font-size:11px;color:var(--muted);align-self:center;">Try:</span>
-      <button onclick="quickTest('test@gmail.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">test@gmail.com</button>
-      <button onclick="quickTest('hello@mailinator.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">hello@mailinator.com</button>
-      <button onclick="quickTest('admin@company.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">admin@company.com</button>
+      <button onclick="quickTest('test@gmail.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d6a2b3a5a296b1bbb7bfbaf8b5b9bb">[email&#160;protected]</a></button>
+      <button onclick="quickTest('hello@mailinator.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="026a676e6e6d426f636b6e6b6c63766d702c616d6f">[email&#160;protected]</a></button>
+      <button onclick="quickTest('admin@company.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ceafaaa3a7a08eada1a3beafa0b7e0ada1a3">[email&#160;protected]</a></button>
       <button onclick="quickTest('notanemail')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">notanemail</button>
-      <button onclick="quickTest('user@gmai.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">user@gmai.com (typo)</button>
+      <button onclick="quickTest('user@gmai.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5b2e283e291b3c363a3275383436">[email&#160;protected]</a> (typo)</button>
     </div>
 
     <div id="single-result"></div>
@@ -532,11 +532,11 @@
   <div class="tab-content" id="tab-docs">
     <p class="endpoint-label">GET /validate</p>
     <div class="code-example"><span class="code-comment"># Validate a single email</span>
-GET /validate?email=user@example.com
+GET /<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="acdacdc0c5c8cdd8c993c9c1cdc5c091d9dfc9deecc9d4cdc1dcc0c982cfc3c1">[email&#160;protected]</a>
 
 <span class="code-comment"># Response</span>
 {
-  <span class="code-key">"email"</span>: <span class="code-str">"user@example.com"</span>,
+  <span class="code-key">"email"</span>: <span class="code-str">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="136660766153766b727e637f763d707c7e">[email&#160;protected]</a>"</span>,
   <span class="code-key">"is_valid"</span>: true,
   <span class="code-key">"score"</span>: 90,
   <span class="code-key">"checks"</span>: {
@@ -556,7 +556,7 @@ POST /validate/bulk
 Content-Type: application/json
 
 {
-  <span class="code-key">"emails"</span>: [<span class="code-str">"a@example.com"</span>, <span class="code-str">"b@test.com"</span>]
+  <span class="code-key">"emails"</span>: [<span class="code-str">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81e0c1e4f9e0ecf1ede4afe2eeec">[email&#160;protected]</a>"</span>, <span class="code-str">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="375577435244431954585a">[email&#160;protected]</a>"</span>]
 }
 
 <span class="code-comment"># Response</span>
@@ -586,8 +586,8 @@ Content-Type: application/json
 
 </div>
 
-<script>
-const API = 'http://localhost:3000';
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const API = 'https://email-validator-api-production-3107.up.railway.app';
 
 function switchTab(name, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -729,27 +729,4 @@ async function validateBulk() {
     out.innerHTML = `
       <div class="bulk-results">
         <div class="stats-row">
-          <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${valid}</div><div class="stat-lbl">Valid</div></div>
-          <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${risky}</div><div class="stat-lbl">Risky</div></div>
-          <div class="stat-card"><div class="stat-num" style="color:var(--red)">${invalid}</div><div class="stat-lbl">Invalid</div></div>
-        </div>
-        <div class="result">
-          ${data.results.map(r => {
-            const bc = !r.is_valid ? 'invalid' : r.score < 70 ? 'risky' : 'valid';
-            const bt = !r.is_valid ? '✗' : r.score < 70 ? '⚠' : '✓';
-            return `<div class="bulk-row">
-              <span class="bulk-email">${r.email}</span>
-              <span class="validity-badge ${bc}" style="font-size:11px;padding:3px 10px">${bt}</span>
-              <span class="mini-score" style="color:${scoreColor(r.score)}">${r.score}/100</span>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  } catch(e) {
-    out.innerHTML = `<div class="error-box">Could not reach API server. Make sure it's running on port 3000.</div>`;
-  }
-}
-</script>
-</body>
-</html>
+          <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${valid}</div><div class="stat-lbl">Valid</

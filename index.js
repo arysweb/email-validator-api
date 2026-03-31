@@ -4,7 +4,9 @@ const dns = require('dns');
 const { promisify } = require('util');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://arysweb.github.io', 'http://localhost:3000']
+}));
 app.use(express.json());
 
 const resolveMx = promisify(dns.resolveMx);
