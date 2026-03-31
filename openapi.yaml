@@ -1,0 +1,245 @@
+openapi: 3.0.3
+info:
+  title: Email Validator API
+  description: Advanced email validation with syntax checking, MX records, disposable detection, and deliverability scoring
+  version: 1.0.0
+  contact:
+    name: Email Validator API
+  license:
+    name: ISC
+
+servers:
+  - url: https://email-validator-api-production-3107.up.railway.app
+    description: Production server
+
+paths:
+  /validate:
+    get:
+      summary: Validate single email
+      description: Validate a single email address with comprehensive checks including syntax, MX records, disposable detection, and deliverability scoring
+      operationId: validateEmail
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+          description: Email address to validate
+          example: john@example.com
+      responses:
+        '200':
+          description: Successful validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+              example:
+                email: john@example.com
+                is_valid: true
+                score: 90
+                checks:
+                  syntax_valid: true
+                  mx_found: true
+                  is_disposable: false
+                  is_free_provider: false
+                  is_role_address: false
+                domain: example.com
+                mx_records:
+                  - exchange: mail.example.com
+                    priority: 10
+                suggestion: null
+        '400':
+          description: Bad request - missing email parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /validate/bulk:
+    post:
+      summary: Validate multiple emails
+      description: Validate up to 50 emails in a single request with the same comprehensive checks
+      operationId: validateBulk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - emails
+              properties:
+                emails:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                  maxItems: 50
+                  description: Array of email addresses to validate
+                  example: ["user1@example.com", "user2@gmail.com", "fake@mailinator.com"]
+      responses:
+        '200':
+          description: Successful bulk validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkValidationResult'
+              example:
+                results:
+                  - email: user1@example.com
+                    is_valid: true
+                    score: 90
+                    checks:
+                      syntax_valid: true
+                      mx_found: true
+                      is_disposable: false
+                      is_free_provider: false
+                      is_role_address: false
+                    domain: example.com
+                  - email: fake@mailinator.com
+                    is_valid: false
+                    score: 60
+                    checks:
+                      syntax_valid: true
+                      mx_found: true
+                      is_disposable: true
+                      is_free_provider: false
+                      is_role_address: false
+                    domain: mailinator.com
+                total: 2
+                valid_count: 1
+        '400':
+          description: Bad request - invalid body or too many emails
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      summary: Health check
+      description: Check API status and version
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResult'
+              example:
+                status: ok
+                version: 1.0.0
+
+components:
+  schemas:
+    ValidationResult:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: The validated email address
+        is_valid:
+          type: boolean
+          description: Whether the email is considered valid for delivery
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Deliverability confidence score (0-100)
+        checks:
+          $ref: '#/components/schemas/ValidationChecks'
+        domain:
+          type: string
+          description: Domain part of the email address
+        mx_records:
+          type: array
+          items:
+            $ref: '#/components/schemas/MxRecord'
+          description: MX records for the domain (up to 3 records)
+        suggestion:
+          type: string
+          nullable: true
+          description: Suggested correction for common typos
+
+    ValidationChecks:
+      type: object
+      properties:
+        syntax_valid:
+          type: boolean
+          description: Email format is syntactically correct
+        mx_found:
+          type: boolean
+          description: Domain has MX records for email delivery
+        is_disposable:
+          type: boolean
+          description: Email is from a disposable/temporary email service
+        is_free_provider:
+          type: boolean
+          description: Email is from a free email provider (Gmail, Yahoo, etc.)
+        is_role_address:
+          type: boolean
+          description: Email is a role address (admin@, info@, support@, etc.)
+
+    MxRecord:
+      type: object
+      properties:
+        exchange:
+          type: string
+          description: Mail server hostname
+        priority:
+          type: integer
+          description: Priority level (lower = higher priority)
+
+    BulkValidationResult:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkEmailResult'
+        total:
+          type: integer
+          description: Total number of emails processed
+        valid_count:
+          type: integer
+          description: Number of emails marked as valid
+
+    BulkEmailResult:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        is_valid:
+          type: boolean
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        checks:
+          $ref: '#/components/schemas/ValidationChecks'
+        domain:
+          type: string
+
+    HealthResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message description
+
+tags:
+  - name: Email Validation
+    description: Email validation endpoints
