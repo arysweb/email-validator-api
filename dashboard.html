@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Validator API — Test Console</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f0f5;
+    --muted: #7a7a8e;
+    --accent: #7fff6e;
+    --accent-dim: rgba(127,255,110,0.1);
+    --accent-border: rgba(127,255,110,0.25);
+    --red: #ff5f5f;
+    --red-dim: rgba(255,95,95,0.1);
+    --amber: #ffb340;
+    --amber-dim: rgba(255,179,64,0.1);
+    --blue: #5b9cf6;
+    --blue-dim: rgba(91,156,246,0.1);
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(127,255,110,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(127,255,110,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+    width: 100%;
+  }
+
+  /* Header */
+  header {
+    margin-bottom: 3rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    background: var(--accent-dim);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+
+  .chip::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Input area */
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .input-wrap {
+    flex: 1;
+    min-width: 240px;
+    position: relative;
+  }
+
+  .input-wrap::before {
+    content: '→';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  input[type="email"], input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 13px 14px 13px 36px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--accent);
+  }
+
+  input::placeholder { color: var(--muted); }
+
+  button.primary {
+    background: var(--accent);
+    color: #0a0a0f;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 13px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  button.primary:hover { opacity: 0.88; }
+  button.primary:active { transform: scale(0.97); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Result card */
+  .result {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .email-display {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .validity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .valid { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+  .invalid { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,95,95,0.25); }
+  .risky { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,179,64,0.25); }
+
+  .checks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .check-item {
+    background: var(--surface);
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .check-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .check-value {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .check-value.ok { color: var(--accent); }
+  .check-value.warn { color: var(--amber); }
+  .check-value.fail { color: var(--red); }
+
+  .score-bar-wrap {
+    padding: 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .score-num {
+    font-family: var(--display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    min-width: 64px;
+  }
+
+  .score-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .score-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .suggestion-box {
+    margin: 0 1.25rem 1.25rem;
+    background: var(--blue-dim);
+    border: 1px solid rgba(91,156,246,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Raw JSON */
+  .json-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-x: auto;
+    color: var(--muted);
+    white-space: pre;
+  }
+
+  .json-key { color: #9ea8ff; }
+  .json-str { color: #7fff6e; }
+  .json-num { color: #ffb340; }
+  .json-bool-t { color: #7fff6e; }
+  .json-bool-f { color: #ff5f5f; }
+  .json-null { color: var(--muted); }
+
+  /* Bulk tab */
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 1rem;
+    border-radius: 8px;
+    outline: none;
+    resize: vertical;
+    min-height: 140px;
+    transition: border-color 0.2s;
+    margin-bottom: 10px;
+  }
+
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  .bulk-results { margin-top: 1.5rem; }
+
+  .bulk-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .bulk-row:last-child { border-bottom: none; }
+
+  .bulk-email { flex: 1; color: var(--text); }
+
+  .mini-score {
+    font-size: 12px;
+    color: var(--muted);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* Code block */
+  .code-example {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .code-comment { color: #4a4a5a; }
+  .code-key { color: #9ea8ff; }
+  .code-str { color: #7fff6e; }
+  .code-fn { color: #ffb340; }
+
+  .endpoint-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    margin-top: 1.5rem;
+  }
+
+  .endpoint-label:first-child { margin-top: 0; }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 1.5rem 0;
+  }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    background: var(--red-dim);
+    border: 1px solid rgba(255,95,95,0.25);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 13px;
+    color: var(--red);
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: var(--display);
+    font-size: 1.8rem;
+    font-weight: 800;
+  }
+
+  .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="chip">API Test Console</div>
+    <h1>Email<br><em>Validator</em> API</h1>
+    <p class="sub">Syntax · MX records · Disposable detection · Deliverability score</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('single', this)">Single</button>
+    <button class="tab" onclick="switchTab('bulk', this)">Bulk</button>
+    <button class="tab" onclick="switchTab('docs', this)">Docs</button>
+  </div>
+
+  <!-- SINGLE TAB -->
+  <div class="tab-content active" id="tab-single">
+    <div class="input-row">
+      <div class="input-wrap">
+        <input type="text" id="email-input" placeholder="Enter email address..." onkeydown="if(event.key==='Enter')validate()">
+      </div>
+      <button class="primary" id="validate-btn" onclick="validate()">Validate →</button>
+    </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem;">
+      <span style="font-size:11px;color:var(--muted);align-self:center;">Try:</span>
+      <button onclick="quickTest('test@gmail.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">test@gmail.com</button>
+      <button onclick="quickTest('hello@mailinator.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">hello@mailinator.com</button>
+      <button onclick="quickTest('admin@company.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">admin@company.com</button>
+      <button onclick="quickTest('notanemail')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">notanemail</button>
+      <button onclick="quickTest('user@gmai.com')" style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;">user@gmai.com (typo)</button>
+    </div>
+
+    <div id="single-result"></div>
+  </div>
+
+  <!-- BULK TAB -->
+  <div class="tab-content" id="tab-bulk">
+    <textarea id="bulk-input" placeholder="Enter one email per line (max 50)&#10;&#10;user@example.com&#10;test@mailinator.com&#10;invalid-email"></textarea>
+    <button class="primary" onclick="validateBulk()">Validate All →</button>
+    <div id="bulk-result"></div>
+  </div>
+
+  <!-- DOCS TAB -->
+  <div class="tab-content" id="tab-docs">
+    <p class="endpoint-label">GET /validate</p>
+    <div class="code-example"><span class="code-comment"># Validate a single email</span>
+GET /validate?email=user@example.com
+
+<span class="code-comment"># Response</span>
+{
+  <span class="code-key">"email"</span>: <span class="code-str">"user@example.com"</span>,
+  <span class="code-key">"is_valid"</span>: true,
+  <span class="code-key">"score"</span>: 90,
+  <span class="code-key">"checks"</span>: {
+    <span class="code-key">"syntax_valid"</span>: true,
+    <span class="code-key">"mx_found"</span>: true,
+    <span class="code-key">"is_disposable"</span>: false,
+    <span class="code-key">"is_free_provider"</span>: false,
+    <span class="code-key">"is_role_address"</span>: false
+  },
+  <span class="code-key">"domain"</span>: <span class="code-str">"example.com"</span>,
+  <span class="code-key">"suggestion"</span>: null
+}</div>
+
+    <p class="endpoint-label">POST /validate/bulk</p>
+    <div class="code-example"><span class="code-comment"># Validate up to 50 emails at once</span>
+POST /validate/bulk
+Content-Type: application/json
+
+{
+  <span class="code-key">"emails"</span>: [<span class="code-str">"a@example.com"</span>, <span class="code-str">"b@test.com"</span>]
+}
+
+<span class="code-comment"># Response</span>
+{
+  <span class="code-key">"results"</span>: [...],
+  <span class="code-key">"total"</span>: 2,
+  <span class="code-key">"valid_count"</span>: 1
+}</div>
+
+    <p class="endpoint-label">Score breakdown</p>
+    <div class="checks-grid" style="border-radius:8px;overflow:hidden;margin-bottom:1.5rem;">
+      <div class="check-item"><span class="check-label">Starts at</span><span class="check-value ok">100</span></div>
+      <div class="check-item"><span class="check-label">Bad syntax</span><span class="check-value fail">−50</span></div>
+      <div class="check-item"><span class="check-label">No MX record</span><span class="check-value fail">−30</span></div>
+      <div class="check-item"><span class="check-label">Disposable domain</span><span class="check-value fail">−40</span></div>
+      <div class="check-item"><span class="check-label">Role address</span><span class="check-value warn">−10</span></div>
+    </div>
+
+    <p class="endpoint-label">RapidAPI pricing tiers</p>
+    <div class="checks-grid" style="border-radius:8px;overflow:hidden;">
+      <div class="check-item"><span class="check-label">Free</span><span class="check-value ok">100 req/mo</span></div>
+      <div class="check-item"><span class="check-label">Basic — $9/mo</span><span class="check-value" style="color:var(--blue)">5,000 req/mo</span></div>
+      <div class="check-item"><span class="check-label">Pro — $29/mo</span><span class="check-value" style="color:var(--amber)">50,000 req/mo</span></div>
+      <div class="check-item"><span class="check-label">Ultra — $99/mo</span><span class="check-value" style="color:var(--text)">500,000 req/mo</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:3000';
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function quickTest(email) {
+  document.getElementById('email-input').value = email;
+  validate();
+}
+
+function scoreColor(s) {
+  if (s >= 80) return 'var(--accent)';
+  if (s >= 50) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function badgeClass(data) {
+  if (!data.is_valid) return 'invalid';
+  if (data.score < 70) return 'risky';
+  return 'valid';
+}
+
+function badgeText(data) {
+  if (!data.is_valid) return '✗ Invalid';
+  if (data.score < 70) return '⚠ Risky';
+  return '✓ Valid';
+}
+
+function checkVal(val, trueLabel, falseLabel, trueClass, falseClass) {
+  return `<span class="check-value ${val ? trueClass : falseClass}">${val ? trueLabel : falseLabel}</span>`;
+}
+
+function syntaxHighlight(obj) {
+  const str = JSON.stringify(obj, null, 2);
+  return str
+    .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="json-str">"$1"</span>')
+    .replace(/: (\d+)/g, ': <span class="json-num">$1</span>')
+    .replace(/: true/g, ': <span class="json-bool-t">true</span>')
+    .replace(/: false/g, ': <span class="json-bool-f">false</span>')
+    .replace(/: null/g, ': <span class="json-null">null</span>');
+}
+
+async function validate() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email) return;
+  const out = document.getElementById('single-result');
+  out.innerHTML = `<div class="loading"><div class="spinner"></div>Validating...</div>`;
+
+  try {
+    const res = await fetch(`${API}/validate?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    const sc = scoreColor(data.score);
+    const bc = badgeClass(data);
+
+    out.innerHTML = `
+      <div class="result">
+        <div class="result-header">
+          <span class="email-display">${data.email}</span>
+          <span class="validity-badge ${bc}">${badgeText(data)}</span>
+        </div>
+        ${data.suggestion ? `<div class="suggestion-box">💡 Did you mean <strong>${data.suggestion}</strong>?</div>` : ''}
+        <div class="checks-grid">
+          <div class="check-item">
+            <span class="check-label">Syntax</span>
+            ${checkVal(data.checks.syntax_valid, 'Valid', 'Invalid', 'ok', 'fail')}
+          </div>
+          <div class="check-item">
+            <span class="check-label">MX Record</span>
+            ${checkVal(data.checks.mx_found, 'Found', 'Not found', 'ok', 'fail')}
+          </div>
+          <div class="check-item">
+            <span class="check-label">Disposable</span>
+            ${checkVal(!data.checks.is_disposable, 'Clean', 'Disposable', 'ok', 'fail')}
+          </div>
+          <div class="check-item">
+            <span class="check-label">Provider</span>
+            ${checkVal(!data.checks.is_free_provider, 'Business', 'Free provider', 'ok', 'warn')}
+          </div>
+          <div class="check-item">
+            <span class="check-label">Role address</span>
+            ${checkVal(!data.checks.is_role_address, 'Personal', 'Role addr', 'ok', 'warn')}
+          </div>
+          <div class="check-item">
+            <span class="check-label">Domain</span>
+            <span class="check-value" style="color:var(--muted)">${data.domain || '—'}</span>
+          </div>
+        </div>
+        <div class="score-bar-wrap">
+          <div>
+            <div class="score-num" style="color:${sc}">${data.score}</div>
+            <div class="score-label">Deliverability score</div>
+          </div>
+          <div style="flex:1">
+            <div class="score-bar-bg">
+              <div class="score-bar-fill" id="score-bar" style="width:0%;background:${sc}"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)">
+              <span>0</span><span>50</span><span>100</span>
+            </div>
+          </div>
+        </div>
+        <details style="border-top:1px solid var(--border);padding:1rem 1.25rem;">
+          <summary style="font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;">Raw JSON response</summary>
+          <div class="json-block" style="margin-top:1rem">${syntaxHighlight(data)}</div>
+        </details>
+      </div>
+    `;
+    setTimeout(() => {
+      const bar = document.getElementById('score-bar');
+      if (bar) bar.style.width = data.score + '%';
+    }, 50);
+  } catch(e) {
+    out.innerHTML = `<div class="error-box">Could not reach API server. Make sure it's running on port 3000.<br><br><code>node index.js</code></div>`;
+  }
+}
+
+async function validateBulk() {
+  const raw = document.getElementById('bulk-input').value.trim();
+  if (!raw) return;
+  const emails = raw.split('\n').map(e => e.trim()).filter(Boolean).slice(0, 50);
+  const out = document.getElementById('bulk-result');
+  out.innerHTML = `<div class="loading"><div class="spinner"></div>Validating ${emails.length} addresses...</div>`;
+
+  try {
+    const res = await fetch(`${API}/validate/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emails })
+    });
+    const data = await res.json();
+    const valid = data.results.filter(r => r.is_valid).length;
+    const invalid = data.results.filter(r => !r.is_valid).length;
+    const risky = data.results.filter(r => r.is_valid && r.score < 70).length;
+
+    out.innerHTML = `
+      <div class="bulk-results">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${valid}</div><div class="stat-lbl">Valid</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${risky}</div><div class="stat-lbl">Risky</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--red)">${invalid}</div><div class="stat-lbl">Invalid</div></div>
+        </div>
+        <div class="result">
+          ${data.results.map(r => {
+            const bc = !r.is_valid ? 'invalid' : r.score < 70 ? 'risky' : 'valid';
+            const bt = !r.is_valid ? '✗' : r.score < 70 ? '⚠' : '✓';
+            return `<div class="bulk-row">
+              <span class="bulk-email">${r.email}</span>
+              <span class="validity-badge ${bc}" style="font-size:11px;padding:3px 10px">${bt}</span>
+              <span class="mini-score" style="color:${scoreColor(r.score)}">${r.score}/100</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    out.innerHTML = `<div class="error-box">Could not reach API server. Make sure it's running on port 3000.</div>`;
+  }
+}
+</script>
+</body>
+</html>
